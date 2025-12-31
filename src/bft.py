@@ -3,6 +3,7 @@ import hashlib
 from datetime import datetime
 from elftools.elf.elffile import ELFFile
 import argparse
+import json
 
 ELF_MAGIC = b'\x7fELF'
 
@@ -85,6 +86,121 @@ def detect_file_type(file_path):
         print(f"Error reading file: {e}")
         return None
 
+def generate_html_report(file_path, metadata, file_type, output_path):
+    """Generate a HTML report from template"""
+    
+    # Find template file in the same directory as this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(script_dir, 'report_template.html')
+    
+    if not os.path.exists(template_path):
+        print(f"Error: Template file not found at {template_path}")
+        return False
+    
+    # Read template
+    with open(template_path, 'r') as f:
+        html_template = f.read()
+    
+    # Prepare data
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    basename = os.path.basename(file_path)
+    
+    # Build basic info items HTML
+    basic_info_html = ""
+    if isinstance(metadata, dict):
+        if 'Magic Number' in metadata:
+            basic_info_html += f"""
+                    <div class="info-item">
+                        <div class="label">Magic Number</div>
+                        <div class="value" style="font-family: 'Courier New', monospace;">{metadata['Magic Number']}</div>
+                    </div>
+"""
+        
+        for key in ['ELF Type', 'Architecture', 'Entry Point', 'Size', 'MD5 Hash', 'Last Modified', 'Creation Time', 'Last Accessed']:
+            if key in metadata:
+                value = metadata[key]
+                basic_info_html += f"""
+                    <div class="info-item">
+                        <div class="label">{key}</div>
+                        <div class="value">{value}</div>
+                    </div>
+"""
+    
+    # Build sections HTML
+    sections_html = ""
+    if isinstance(metadata, dict) and 'Sections' in metadata and metadata['Sections']:
+        sections_html = """
+            <div class="section">
+                <h3>ELF Sections</h3>
+                <div class="sections-list">
+"""
+        for section in metadata['Sections']:
+            sections_html += f'                    <div class="section-item">{section}</div>\n'
+        
+        sections_html += """
+                </div>
+            </div>
+"""
+    
+    # Build program headers HTML
+    program_headers_html = ""
+    if isinstance(metadata, dict) and 'Program Headers' in metadata and metadata['Program Headers']:
+        program_headers_html = """
+            <div class="section">
+                <h3>Program Headers</h3>
+                <div class="program-headers">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Offset</th>
+                                <th>Virtual Address</th>
+                                <th>Physical Address</th>
+                                <th>File Size</th>
+                                <th>Memory Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+"""
+        
+        for ph in metadata['Program Headers']:
+            program_headers_html += f"""
+                            <tr>
+                                <td>{ph['Type']}</td>
+                                <td><code>{ph['Offset']}</code></td>
+                                <td><code>{ph['Virtual Address']}</code></td>
+                                <td><code>{ph['Physical Address']}</code></td>
+                                <td>{ph['File Size']}</td>
+                                <td>{ph['Memory Size']}</td>
+                            </tr>
+"""
+        
+        program_headers_html += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+"""
+    
+    # Replace placeholders in template
+    html_output = html_template.replace('{{BASENAME}}', basename)
+    html_output = html_output.replace('{{TIMESTAMP}}', timestamp)
+    html_output = html_output.replace('{{FILE_TYPE}}', file_type.upper())
+    html_output = html_output.replace('{{FILE_PATH}}', file_path)
+    html_output = html_output.replace('{{BASIC_INFO}}', basic_info_html)
+    html_output = html_output.replace('{{SECTIONS}}', sections_html)
+    html_output = html_output.replace('{{PROGRAM_HEADERS}}', program_headers_html)
+    
+    # Write output
+    try:
+        with open(output_path, 'w') as f:
+            f.write(html_output)
+        print(f"Report generated successfully: {output_path}")
+        return True
+    except Exception as e:
+        print(f"Error writing report: {e}")
+        return False
+
 def print_metadata(file_path, options):
     # Detect file type by magic bytes instead of extension
     file_type = detect_file_type(file_path)
@@ -112,6 +228,8 @@ def print_metadata(file_path, options):
                 print(f"{key}: {value}")
     else:
         print(metadata)
+    
+    return metadata, file_type
 
 def main():
     # Configure argparse
@@ -146,6 +264,12 @@ def main():
         action='store_true', 
         help="Print ELF program headers."
     )
+    parser.add_argument(
+        '--report',
+        nargs='?',
+        const='',
+        help="Generate an HTML report. Optionally specify output path (default: <filename>_report.html in current directory)."
+    )
 
     # Parse args
     args = parser.parse_args()
@@ -163,7 +287,7 @@ def main():
         print(f"Error: File '{file_path}' does not exist.")
         return
 
-    # Handle options
+    # Handle filter flag options
     options = []
     if args.basic:
         options.append('basic')
@@ -175,7 +299,19 @@ def main():
     if not options:
         options = ['basic', 'section', 'header']
 
-    print_metadata(file_path, options)
+    # Print metadata
+    metadata, file_type = print_metadata(file_path, options)
+    
+    # Handle report option
+    if args.report:
+        if args.report == '':
+            basename = os.path.basename(file_path)
+            report_filename = f"{basename}_report.html"
+            report_path = os.path.join(os.getcwd(), report_filename)
+        else:
+            report_path = args.report
+        
+        generate_html_report(file_path, metadata, file_type, report_path)
 
 if __name__ == "__main__":
     main()

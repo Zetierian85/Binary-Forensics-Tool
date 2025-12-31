@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Forensics Report - {{BASENAME}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a0d8f1 0%, #f5f1e1 100%);
+            padding: 20px;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #51a9d0c4;
+            color: #333;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .metadata-section {
+            padding: 30px;
+	    background: white;
+        }
+        
+        .file-info {
+            background: #f9fafb;
+            border-left: 4px solid #7ca3c7;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        
+        .file-info h2 {
+	    color: #000;
+	    margin-bottom: 15px;
+	    font-size: 1.5em;
+	}
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .info-item .label {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-item .value {
+            color: #333;
+            font-size: 1.1em;
+            word-break: break-all;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h3 {
+	    color: #000;
+	    margin-bottom: 15px;
+	    font-size: 1.3em;
+	    border-bottom: 2px solid #f5f1e1;
+	    padding-bottom: 10px;
+        }
+        
+        .sections-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .section-item {
+            background: #f9fafb;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 3px solid #7ca3c7;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .program-headers {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th {
+            background: #7ca3c7;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #f6fdff;
+            color: black;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Binary Forensics Report</h1>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+                <span class="badge">Generated: {{TIMESTAMP}}</span>
+                <span class="badge">Type: {{FILE_TYPE}}</span>
+            </div>
+        </div>
+        
+        <div class="metadata-section">
+            <div class="file-info">
+                <h2>File Information</h2>
+                <div style="margin-top: 10px;">
+                    <strong>Full Path:</strong> <code>{{FILE_PATH}}</code>
+                </div>
+                <div class="info-grid">
+                    {{BASIC_INFO}}
+                </div>
+            </div>
+            
+            {{SECTIONS}}
+            
+            {{PROGRAM_HEADERS}}
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Binary Forensics Tool (BFT)</p>
+            <p style="margin-top: 5px; font-size: 0.9em;">Report Date: {{TIMESTAMP}}</p>
+        </div>
+    </div>
+</body>
+</html>
