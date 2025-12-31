@@ -5,7 +5,7 @@ A simple python3 tool for pulling forensic data from binary files, primarily sup
 This section should cover the requirements and configuration you need to run BFT successfully.
 ### 1. Clone BFT Locally
 ```
-git clone git@github.com:Zetierian85/Binary-Forensics-Tool.git
+git clone https://github.com/Zetierian85/Binary-Forensics-Tool.git
 cd Binary-Forensics-Tool
 ```
 ### 2. Create Python venv, install dependencies
